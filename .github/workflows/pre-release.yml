@@ -28,7 +28,7 @@ jobs:
         shell: pwsh
 
       - name: Build EXE with Pyinstaller (Verbose)
-        run: pyinstaller --name SP5ToICalExp --add-data "src/app/templates;templates/" --add-data "src/utils;utils/" --hidden-import "PyPDF2" --hidden-import "ics" --hidden-import "pytz" --hidden-import "slugify" --hidden-import "werkzeug" src/main.py --log-level DEBUG
+        run: pyinstaller --name SP5ToICalExp --add-data "src/app/templates;templates/" --add-data "src/utils;utils/" --collect-all PyPDF2 --collect-all ics --collect-all pytz --collect-all slugify --collect-all werkzeug src/main.py --log-level DEBUG
         shell: pwsh
 
       - name: List files after build
