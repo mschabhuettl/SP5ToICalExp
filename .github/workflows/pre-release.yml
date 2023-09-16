@@ -1,0 +1,66 @@
+name: Pre-Release Build
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: List files before build
+        run: Get-ChildItem -Recurse
+        shell: pwsh
+
+      - name: Generate Version
+        run: echo "VERSION=$(Get-Date -Format "yyyyMMdd").${{ github.run_number }}" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+        shell: pwsh
+
+      - name: Build EXE with Pyinstaller (Verbose)
+        run: pyinstaller --name SP5ToICalExp --add-data "src/app/templates;templates/" --add-data "src/utils;utils/" --hidden-import "PyPDF2" --hidden-import "ics" --hidden-import "pytz" --hidden-import "slugify" --hidden-import "werkzeug" src/main.py --log-level DEBUG
+        shell: pwsh
+
+      - name: List files after build
+        run: Get-ChildItem -Path dist -Recurse
+        shell: pwsh
+
+      - name: Zip the EXE Folder
+        run: Compress-Archive -Path dist/SP5ToICalExp/* -DestinationPath "SP5ToICalExp-${{ env.VERSION }}-windows-beta.zip"
+        shell: pwsh
+
+      - name: List files in ZIP
+        run: Expand-Archive -Path "SP5ToICalExp-${{ env.VERSION }}-windows-beta.zip" -DestinationPath temp; Get-ChildItem -Path temp -Recurse
+        shell: pwsh
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        with:
+          tag_name: ${{ env.VERSION }}
+          release_name: Release ${{ env.VERSION }}
+          draft: false
+          prerelease: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.SP5TOICALEXP }}
+
+      - name: Upload Release Asset
+        id: upload-release-asset 
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: "./SP5ToICalExp-${{ env.VERSION }}-windows-beta.zip"
+          asset_name: SP5ToICalExp-${{ env.VERSION }}-windows-beta.zip
+          asset_content_type: application/zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.SP5TOICALEXP }}
