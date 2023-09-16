@@ -1,0 +1,8 @@
+flask
+gunicorn
+PyPDF2
+Werkzeug
+ics
+python-slugify
+pytz
+pyinstaller
