@@ -8,41 +8,51 @@ jobs:
     runs-on: windows-latest
 
     steps:
+      # Checkout the Code from the Repository
       - name: Checkout Code
         uses: actions/checkout@v2
 
+      # Setup Python Environment with Specific Python Version
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
           python-version: '3.x'
 
+      # Install Required Dependencies from requirements.txt
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      # List All Files Before Build for Debugging Purposes
       - name: List files before build
         run: Get-ChildItem -Recurse
         shell: pwsh
 
+      # Generate a Version Number based on Date and Run Number
       - name: Generate Version
         run: echo "VERSION=$(Get-Date -Format "yyyyMMdd").${{ github.run_number }}" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
         shell: pwsh
 
+      # Build the EXE with PyInstaller with Debugging Information
       - name: Build EXE with Pyinstaller (Verbose)
         run: pyinstaller --name SP5ToICalExp --add-data "src/app/templates;templates/" --add-data "src/utils;utils/" --collect-all PyPDF2 --collect-all ics --collect-all pytz --collect-all slugify --collect-all werkzeug src/main.py --log-level DEBUG
         shell: pwsh
 
+      # List All Files After Build for Debugging Purposes
       - name: List files after build
         run: Get-ChildItem -Path dist -Recurse
         shell: pwsh
 
+      # Compress the Resulting EXE Folder to a ZIP Archive
       - name: Zip the EXE Folder
         run: Compress-Archive -Path dist/SP5ToICalExp/* -DestinationPath "SP5ToICalExp-${{ env.VERSION }}-windows-beta.zip"
         shell: pwsh
 
+      # List All Files Inside the ZIP Archive for Debugging Purposes
       - name: List files in ZIP
         run: Expand-Archive -Path "SP5ToICalExp-${{ env.VERSION }}-windows-beta.zip" -DestinationPath temp; Get-ChildItem -Path temp -Recurse
         shell: pwsh
 
+      # Create a Pre-Release on GitHub with the Generated Version Number
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -54,6 +64,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.SP5TOICALEXP }}
 
+      # Upload the ZIP Archive as an Asset to the Created Release
       - name: Upload Release Asset
         id: upload-release-asset 
         uses: actions/upload-release-asset@v1
