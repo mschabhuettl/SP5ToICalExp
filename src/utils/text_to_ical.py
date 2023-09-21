@@ -5,29 +5,32 @@ import pytz
 
 def convert_shifts_to_ical(shifts):
     """Converts a list of shift dictionaries to an iCal formatted calendar string.
-
     Parameters:
         shifts (list): A list of shift dictionaries with details.
-
     Returns:
         str: The iCal formatted calendar string.
     """
-    # Initialize a new calendar
-    cal = Calendar()
+    # Debug: list all available timezones
+    print("Available timezones:", pytz.all_timezones)
 
-    # Define the timezone to be used
-    tz = pytz.timezone('Europe/Vienna')
+    # Check if the timezone is available
+    tz_name = 'Europe/Vienna'
+    if tz_name not in pytz.all_timezones:
+        raise ValueError(f"The timezone '{tz_name}' is not available")
+    tz = pytz.timezone(tz_name)
+
+    cal = Calendar()  # Initialize a new calendar
 
     def create_event(shift):
         """Creates an Event instance based on a single shift dictionary."""
-        e = Event()
-
         try:
-            start_date = datetime.strptime(shift["date"], "%a. %d.%m.%Y")
+            start_date = datetime.strptime(shift["date"], "%a. %d.%m.%Y").replace(tzinfo=tz)
+
+            e = Event()
+            e.name = shift["entry"]
 
             if shift["all_day"]:
-                e.name = shift["entry"]
-                e.begin = tz.localize(start_date)
+                e.begin = start_date
                 e.make_all_day()
             else:
                 start_time_str, end_time_str = shift["shift_time"].split("-")
@@ -40,7 +43,6 @@ def convert_shifts_to_ical(shifts):
                 if end_datetime < start_datetime:
                     end_datetime += timedelta(days=1)
 
-                e.name = shift["entry"]
                 e.begin = start_datetime
                 e.end = end_datetime
 
