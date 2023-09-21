@@ -3,34 +3,30 @@ from datetime import datetime, timedelta
 import pytz
 
 
-def convert_shifts_to_ical(shifts):
-    """Converts a list of shift dictionaries to an iCal formatted calendar string.
+def convert_shifts_to_ical(shifts, timezone='Europe/Vienna'):
+    """
+    Converts a list of shift dictionaries to an iCal formatted calendar string.
+
     Parameters:
         shifts (list): A list of shift dictionaries with details.
+        timezone (str): The string representation of the timezone. Default is 'Europe/Vienna'.
+
     Returns:
         str: The iCal formatted calendar string.
     """
-    # Debug: list all available timezones
-    print("Available timezones:", pytz.all_timezones)
-
-    # Check if the timezone is available
-    tz_name = 'Europe/Vienna'
-    if tz_name not in pytz.all_timezones:
-        raise ValueError(f"The timezone '{tz_name}' is not available")
-    tz = pytz.timezone(tz_name)
-
-    cal = Calendar()  # Initialize a new calendar
+    cal = Calendar()
+    tz = pytz.timezone(timezone)
 
     def create_event(shift):
         """Creates an Event instance based on a single shift dictionary."""
+        e = Event()
+
         try:
-            start_date = datetime.strptime(shift["date"], "%a. %d.%m.%Y").replace(tzinfo=tz)
+            start_date = datetime.strptime(shift["date"], "%a. %d.%m.%Y")
 
-            e = Event()
-            e.name = shift["entry"]
-
-            if shift["all_day"]:
-                e.begin = start_date
+            if shift.get("all_day", False):
+                e.name = shift["entry"]
+                e.begin = tz.localize(start_date)
                 e.make_all_day()
             else:
                 start_time_str, end_time_str = shift["shift_time"].split("-")
@@ -43,15 +39,15 @@ def convert_shifts_to_ical(shifts):
                 if end_datetime < start_datetime:
                     end_datetime += timedelta(days=1)
 
+                e.name = shift["entry"]
                 e.begin = start_datetime
                 e.end = end_datetime
 
             return e
         except (ValueError, KeyError) as ex:
-            print(f"Error occurred while creating an event: {ex}")
+            print(f"Error occurred while creating an event: {ex}. Shift: {shift}")
             return None
 
-    # Process each shift list and each shift within it
     for shift_list in shifts:
         for shift in shift_list:
             event = create_event(shift)
