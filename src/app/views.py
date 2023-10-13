@@ -1,19 +1,20 @@
 # Standard Library imports
+import logging
 import os
 import pickle
 import re
 import tempfile
 import uuid
-import logging
 from collections import Counter, defaultdict
+from io import BytesIO
 from typing import Any, Dict, List, Optional, Tuple, Union
 from zipfile import ZipFile, ZIP_DEFLATED
 
 # Third-Party imports
 from flask import Blueprint, current_app, flash, redirect, render_template, request, send_file, session, url_for
 from slugify import slugify
-from werkzeug.utils import secure_filename
 from werkzeug.datastructures import FileStorage
+from werkzeug.utils import secure_filename
 
 # Local imports
 from utils.pdf_to_text import convert_pdf_to_text
@@ -181,12 +182,13 @@ def download_individual(person_name: str):
         # Prepare individual ICS content
         ical_content_encoded = ical_content.encode()
 
-        # Create a unique temporary ICS file and write the content
-        fd, ics_path = tempfile.mkstemp(suffix=".ics", dir=TEMP_DIR)
-        with os.fdopen(fd, 'wb') as temp_file:
-            temp_file.write(ical_content_encoded)
+        # Create a BytesIO object from the ical content
+        ics_file = BytesIO(ical_content_encoded)
 
-        return send_file(ics_path, as_attachment=True, download_name=f"{filename}.ics")
+        # Set the file pointer to the beginning
+        ics_file.seek(0)
+
+        return send_file(ics_file, as_attachment=True, download_name=f"{filename}.ics", mimetype='text/calendar')
 
     except (FileNotFoundError, ValueError, KeyError) as e:
         logging.error(f"An error occurred during individual file download: {e}")
