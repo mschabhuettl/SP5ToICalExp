@@ -137,8 +137,6 @@ def download():
         return redirect(url_for('views.home'))
 
 
-from tempfile import NamedTemporaryFile
-
 @bp.route("/download/<string:person_name>")
 def download_individual(person_name: str):
     """
@@ -175,25 +173,26 @@ def download_individual(person_name: str):
         if person_name not in ical_contents:
             raise KeyError(f"No data found for the specified person: {person_name}")
 
-        # Prepare individual ICS content
+        # Prepare individual ICS content and file path
         ical_content = ical_contents[person_name]
+        download_id = uuid.uuid4()
         filename = create_slugified_filename(person_name)
+        ics_path = tempfile.mktemp(suffix=".ics")
 
-        with NamedTemporaryFile(suffix=".ics", delete=False) as tempf:
-            tempf.write(ical_content.encode())
-            ics_path = tempf.name
+        # Write the individual ICS content to the file
+        with open(ics_path, 'wb') as icsf:
+            icsf.write(ical_content.encode())
 
-        response = send_file(ics_path, as_attachment=True, download_name=f"{filename}.ics")
-
-        # Clean up the temporary file
-        os.remove(ics_path)
-
-        return response
+        return send_file(ics_path, as_attachment=True, download_name=f"{filename}.ics")
 
     except (FileNotFoundError, ValueError, KeyError) as e:
         logging.error(f"An error occurred during individual file download: {e}")
         flash(f"Error: {e}", ERROR_FLASH_CATEGORY)
         return redirect(url_for('views.home'))
+
+    finally:
+        if 'ics_path' in locals() and os.path.exists(ics_path):
+            os.remove(ics_path)
 
 
 # Utility functions
