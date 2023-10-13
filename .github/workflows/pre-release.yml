@@ -22,10 +22,6 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      # Print the path to the pytz library
-      - name: Print pytz path
-        run: python -c "import pytz; print(pytz.__path__[0])"
-
       # List All Files Before Build for Debugging Purposes
       - name: List files before build
         run: Get-ChildItem -Recurse
@@ -38,8 +34,7 @@ jobs:
 
       # Build the EXE with PyInstaller with Debugging Information
       - name: Build EXE with Pyinstaller (Verbose)
-        run: |
-          pyinstaller --name SP5ToICalExp --add-data "src/app/templates;templates/" --add-data "src/utils;utils/" --add-data "$(python -c 'import dateutil.zoneinfo; print(dateutil.__path__[0])')/zoneinfo;dateutil/zoneinfo" src/main.py --log-level DEBUG
+        run: pyinstaller --name SP5ToICalExp --add-data "src/app/templates;templates/" --add-data "src/utils;utils/" --add-data "$(python -c 'import dateutil.zoneinfo; print(dateutil.__path__[0])')/zoneinfo;dateutil/zoneinfo" src/main.py --log-level DEBUG
         shell: pwsh
 
       # List All Files After Build for Debugging Purposes
