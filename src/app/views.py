@@ -505,13 +505,13 @@ def load_ical_contents_from_temp_file(temp_filename: str) -> Optional[Dict[str, 
         raise TempFileReadError(f"An error occurred while reading the temporary file {temp_filename}") from e
 
 
-def create_zip_from_ical_contents(ical_contents: Dict[str, str], download_id: Union[str, int]) -> str:
+def create_zip_from_ical_contents(ical_contents: Dict[str, str], zip_path: str) -> str:
     """
     Create a ZIP file from iCal content and returns its path.
 
     Parameters:
     - ical_contents (Dict[str, str]): A dictionary mapping person names to their iCal content.
-    - download_id (Union[str, int]): A unique identifier for the download.
+    - zip_path (str): The path to the ZIP file to be created.
 
     Returns:
     - str: The path to the created ZIP file.
@@ -520,8 +520,6 @@ def create_zip_from_ical_contents(ical_contents: Dict[str, str], download_id: Un
     - Exception: If any error occurs during the ZIP file creation.
     """
     try:
-        zip_path = f'{TEMP_DIR}{download_id}{ZIP_EXTENSION}'
-
         # Using ZipFile context manager to automatically close the file
         with ZipFile(zip_path, 'w', ZIP_DEFLATED) as zipf:
             for name, ical_content in ical_contents.items():
@@ -534,11 +532,6 @@ def create_zip_from_ical_contents(ical_contents: Dict[str, str], download_id: Un
                 zipf.writestr(filename_with_extension, ical_content.encode())
 
         return zip_path
-
-    except (FileNotFoundError, PermissionError) as e:
-        logging.error(f"An error occurred while creating the ZIP file: {e}")
-        # If required, you can raise an exception here for the caller to handle
-        raise
 
 
 def send_and_cleanup(zip_path, temp_filename):
