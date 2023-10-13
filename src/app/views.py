@@ -8,6 +8,7 @@ import logging
 from collections import Counter, defaultdict
 from typing import Any, Dict, List, Optional, Tuple, Union
 from zipfile import ZipFile, ZIP_DEFLATED
+from tempfile import NamedTemporaryFile
 
 # Third-Party imports
 from flask import Blueprint, current_app, flash, redirect, render_template, request, send_file, session, url_for
@@ -136,8 +137,6 @@ def download():
         flash(f"Error: {e}", ERROR_FLASH_CATEGORY)
         return redirect(url_for('views.home'))
 
-
-from tempfile import NamedTemporaryFile
 
 @bp.route("/download/<string:person_name>")
 def download_individual(person_name: str):
