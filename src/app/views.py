@@ -181,6 +181,7 @@ def download_individual(person_name: str):
         # Write the individual ICS content to the file
         with open(ics_path, 'wb') as icsf:
             icsf.write(ical_content.encode())
+            icsf.close()
 
         return send_file(ics_path, as_attachment=True, download_name=f"{filename}.ics")
 
