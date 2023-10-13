@@ -34,7 +34,9 @@ jobs:
 
       # Build the EXE with PyInstaller with Debugging Information
       - name: Build EXE with Pyinstaller (Verbose)
-        run: pyinstaller --name SP5ToICalExp --add-data "src/app/templates;templates/" --add-data "src/utils;utils/" --collect-all PyPDF2 --collect-all ics --collect-all pytz --collect-all slugify --collect-all werkzeug src/main.py --log-level DEBUG
+        run: |
+          $pytz_data = (python -c "import pytz; print(pytz.__path__[0])")
+          pyinstaller --name SP5ToICalExp --add-data "src/app/templates;templates/" --add-data "src/utils;utils/" --add-data "$pytz_data;pytz/" --collect-all PyPDF2 --collect-all ics --collect-all pytz --collect-all slugify --collect-all werkzeug src/main.py --log-level DEBUG
         shell: pwsh
 
       # List All Files After Build for Debugging Purposes
