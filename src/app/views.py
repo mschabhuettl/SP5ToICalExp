@@ -182,10 +182,9 @@ def download_individual(person_name: str):
         ical_content_encoded = ical_content.encode()
 
         # Create a unique temporary ICS file and write the content
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".ics", mode='wb', dir=TEMP_DIR) as temp_file:
+        fd, ics_path = tempfile.mkstemp(suffix=".ics", dir=TEMP_DIR)
+        with os.fdopen(fd, 'wb') as temp_file:
             temp_file.write(ical_content_encoded)
-            ics_path = temp_file.name
-            temp_file.close()  # Explicitly close the file
 
         return send_file(ics_path, as_attachment=True, download_name=f"{filename}.ics")
 
