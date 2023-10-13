@@ -134,6 +134,10 @@ def download():
         # Set the file pointer to the beginning
         zip_file.seek(0)
 
+        # Generate a unique ZIP filename
+        zip_filename = f"shifts-{download_id}.zip"
+
+        # Send the ZIP file as an attachment
         return send_file(zip_file, as_attachment=True, download_name=zip_filename, mimetype='application/zip')
 
     except (FileNotFoundError, ValueError) as e:
@@ -185,7 +189,9 @@ def download_individual(person_name: str):
         ical_content = ical_contents[person_name]
         download_id = uuid.uuid4()
         filename = create_slugified_filename(person_name)
-        ics_path = os.path.join(TEMP_DIR, f'{filename}.ics')
+
+        # Generate a unique ICS filename
+        ics_filename = f"{filename}-{download_id}.ics"
 
         # Prepare individual ICS content
         ical_content_encoded = ical_content.encode()
@@ -196,7 +202,7 @@ def download_individual(person_name: str):
         # Set the file pointer to the beginning
         ics_file.seek(0)
 
-        return send_file(ics_file, as_attachment=True, download_name=f"{filename}.ics", mimetype='text/calendar')
+        return send_file(ics_file, as_attachment=True, download_name=ics_filename, mimetype='text/calendar')
 
     except (FileNotFoundError, ValueError, KeyError) as e:
         logging.error(f"An error occurred during individual file download: {e}")
