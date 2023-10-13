@@ -24,7 +24,7 @@ logging.basicConfig(level=logging.INFO)
 
 # Constants
 ERROR_FLASH_CATEGORY = 'error'  # Category used for flashing error messages
-TEMP_DIR = '/tmp/'  # Temporary directory for file storage
+TEMP_DIR = tempfile.gettempdir()  # Platform-independent temporary directory for file storage
 ZIP_EXTENSION = '.zip'  # File extension for ZIP files
 
 bp = Blueprint('views', __name__)
@@ -118,7 +118,7 @@ def download():
 
         # Generate a unique download ID and create a ZIP file
         download_id = uuid.uuid4()
-        zip_path = create_zip_from_ical_contents(ical_contents, download_id)
+        zip_path = os.path.join(TEMP_DIR, create_zip_from_ical_contents(ical_contents, download_id))
 
         # Check if the ZIP file was created successfully
         if not zip_path:
@@ -176,7 +176,7 @@ def download_individual(person_name: str):
         ical_content = ical_contents[person_name]
         download_id = uuid.uuid4()
         filename = create_slugified_filename(person_name)
-        ics_path = os.path.join('/tmp', f'{filename}.ics')
+        ics_path = os.path.join(TEMP_DIR, f'{filename}.ics')
 
         # Write the individual ICS content to the file
         with open(ics_path, 'wb') as icsf:
