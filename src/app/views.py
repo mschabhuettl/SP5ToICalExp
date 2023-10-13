@@ -119,14 +119,22 @@ def download():
 
         # Generate a unique download ID and create a ZIP file
         download_id = uuid.uuid4()
-        zip_path = os.path.join(TEMP_DIR, create_zip_from_ical_contents(ical_contents, download_id))
+        zip_filename = f"shifts-{download_id}.zip"
+        zip_path = os.path.join(TEMP_DIR, zip_filename)
 
-        # Check if the ZIP file was created successfully
-        if not zip_path:
-            raise FileNotFoundError("Failed to create ZIP file.")
+        # Create a BytesIO object to store the ZIP content
+        zip_file = BytesIO()
 
-        # Send the ZIP file as an attachment
-        return send_file(zip_path, as_attachment=True, download_name='shifts.zip')
+        # Create a ZIP archive in the BytesIO object
+        with ZipFile(zip_file, 'w', ZIP_DEFLATED) as zf:
+            for person_name, ical_content in ical_contents.items():
+                filename = create_slugified_filename(person_name) + ".ics"
+                zf.writestr(filename, ical_content)
+
+        # Set the file pointer to the beginning
+        zip_file.seek(0)
+
+        return send_file(zip_file, as_attachment=True, download_name=zip_filename, mimetype='application/zip')
 
     except (FileNotFoundError, ValueError) as e:
         # Log the error for debugging purposes
