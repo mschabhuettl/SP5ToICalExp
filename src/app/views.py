@@ -178,10 +178,13 @@ def download_individual(person_name: str):
         filename = create_slugified_filename(person_name)
         ics_path = os.path.join(TEMP_DIR, f'{filename}.ics')
 
-        # Write the individual ICS content to the file
-        with open(ics_path, 'wb') as icsf:
-            icsf.write(ical_content.encode())
-            icsf.close()
+        # Prepare individual ICS content
+        ical_content_encoded = ical_content.encode()
+
+        # Create a unique temporary ICS file and write the content
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".ics", mode='wb', dir=TEMP_DIR) as temp_file:
+            temp_file.write(ical_content_encoded)
+            ics_path = temp_file.name
 
         return send_file(ics_path, as_attachment=True, download_name=f"{filename}.ics")
 
