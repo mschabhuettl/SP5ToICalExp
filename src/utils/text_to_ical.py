@@ -29,15 +29,15 @@ def convert_shifts_to_ical(shifts, timezone='Europe/Vienna'):
 
             if shift.get("all_day", False):
                 e.name = shift["entry"]
-                e.begin = tz_info.localize(start_date)
+                e.begin = start_date.replace(tzinfo=tz_info)
                 e.make_all_day()
             else:
                 start_time_str, end_time_str = shift["shift_time"].split("-")
                 start_time = datetime.strptime(start_time_str, "%H:%M").time()
                 end_time = datetime.strptime(end_time_str, "%H:%M").time()
 
-                start_datetime = tz_info.localize(datetime.combine(start_date, start_time))
-                end_datetime = tz_info.localize(datetime.combine(start_date, end_time))
+                start_datetime = datetime.combine(start_date, start_time).replace(tzinfo=tz_info)
+                end_datetime = datetime.combine(start_date, end_time).replace(tzinfo=tz_info)
 
                 if end_datetime < start_datetime:
                     end_datetime += timedelta(days=1)
