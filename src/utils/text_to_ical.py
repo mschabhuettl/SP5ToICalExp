@@ -1,11 +1,10 @@
 from ics import Calendar, Event
 from datetime import datetime, timedelta
-import pytz
-
+from dateutil import tz
 
 def convert_shifts_to_ical(shifts, timezone='Europe/Vienna'):
     """
-    Converts a list of shift dictionaries to an iCal formatted calendar string.
+    Converts a list of shift dictionaries into an iCal formatted calendar string.
 
     Parameters:
         shifts (list): A list of shift dictionaries with details.
@@ -15,7 +14,11 @@ def convert_shifts_to_ical(shifts, timezone='Europe/Vienna'):
         str: The iCal formatted calendar string.
     """
     cal = Calendar()
-    tz = pytz.timezone(timezone)
+
+    tz_info = tz.gettz(timezone)
+    if not tz_info:
+        print(f"Invalid timezone: {timezone}")
+        return None
 
     def create_event(shift):
         """Creates an Event instance based on a single shift dictionary."""
@@ -26,15 +29,15 @@ def convert_shifts_to_ical(shifts, timezone='Europe/Vienna'):
 
             if shift.get("all_day", False):
                 e.name = shift["entry"]
-                e.begin = tz.localize(start_date)
+                e.begin = tz_info.localize(start_date)
                 e.make_all_day()
             else:
                 start_time_str, end_time_str = shift["shift_time"].split("-")
                 start_time = datetime.strptime(start_time_str, "%H:%M").time()
                 end_time = datetime.strptime(end_time_str, "%H:%M").time()
 
-                start_datetime = tz.localize(datetime.combine(start_date, start_time))
-                end_datetime = tz.localize(datetime.combine(start_date, end_time))
+                start_datetime = tz_info.localize(datetime.combine(start_date, start_time))
+                end_datetime = tz_info.localize(datetime.combine(start_date, end_time))
 
                 if end_datetime < start_datetime:
                     end_datetime += timedelta(days=1)
