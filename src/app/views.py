@@ -118,7 +118,8 @@ def download():
 
         # Generate a unique download ID and create a ZIP file
         download_id = uuid.uuid4()
-        zip_path = create_zip_from_ical_contents(ical_contents, download_id)
+        zip_path = tempfile.mktemp(suffix=".zip")
+        create_zip_from_ical_contents(ical_contents, zip_path)
 
         # Check if the ZIP file was created successfully
         if not zip_path:
@@ -176,7 +177,7 @@ def download_individual(person_name: str):
         ical_content = ical_contents[person_name]
         download_id = uuid.uuid4()
         filename = create_slugified_filename(person_name)
-        ics_path = os.path.join('/tmp', f'{filename}.ics')
+        ics_path = tempfile.mktemp(suffix=".ics")
 
         # Write the individual ICS content to the file
         with open(ics_path, 'wb') as icsf:
