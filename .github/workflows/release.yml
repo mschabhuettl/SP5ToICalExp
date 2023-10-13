@@ -1,0 +1,76 @@
+name: Release Build
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      # Checkout the Code from the Repository
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      # Setup Python Environment with Specific Python Version
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
+      # Install Required Dependencies from requirements.txt
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      # List All Files Before Build for Debugging Purposes
+      - name: List files before build
+        run: Get-ChildItem -Recurse
+        shell: pwsh
+
+      # Generate a Version Number based on Date and Run Number
+      - name: Generate Version
+        run: echo "VERSION=$(Get-Date -Format "yyyyMMdd").${{ github.run_number }}" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+        shell: pwsh
+
+      # Build the EXE with PyInstaller with Debugging Information
+      - name: Build EXE with Pyinstaller (Verbose)
+        run: pyinstaller --name SP5ToICalExp --add-data "src/app/templates;templates/" --add-data "src/utils;utils/" --add-data "$(python -c 'import dateutil.zoneinfo; print(dateutil.__path__[0])')/zoneinfo;dateutil/zoneinfo" src/main.py --log-level DEBUG
+        shell: pwsh
+
+      # List All Files After Build for Debugging Purposes
+      - name: List files after build
+        run: Get-ChildItem -Path dist -Recurse
+        shell: pwsh
+
+      # Compress the Resulting EXE Folder to a ZIP Archive
+      - name: Zip the EXE Folder
+        run: Compress-Archive -Path dist/SP5ToICalExp/* -DestinationPath "SP5ToICalExp-${{ env.VERSION }}-windows.zip"
+        shell: pwsh
+
+      # List All Files Inside the ZIP Archive for Debugging Purposes
+      - name: List files in ZIP
+        run: Expand-Archive -Path "SP5ToICalExp-${{ env.VERSION }}-windows.zip" -DestinationPath temp; Get-ChildItem -Path temp -Recurse
+        shell: pwsh
+
+      # Create a Release on GitHub with the Generated Version Number
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        with:
+          tag_name: ${{ env.VERSION }}
+          release_name: Release ${{ env.VERSION }}
+          draft: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.SP5TOICALEXP }}
+
+      # Upload the ZIP Archive as an Asset to the Created Release
+      - name: Upload Release Asset
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: "./SP5ToICalExp-${{ env.VERSION }}-windows.zip"
+          asset_name: SP5ToICalExp-${{ env.VERSION }}-windows.zip
+          asset_content_type: application/zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.SP5TOICALEXP }}
