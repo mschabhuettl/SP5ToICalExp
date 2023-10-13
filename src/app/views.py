@@ -185,6 +185,7 @@ def download_individual(person_name: str):
         with tempfile.NamedTemporaryFile(delete=False, suffix=".ics", mode='wb', dir=TEMP_DIR) as temp_file:
             temp_file.write(ical_content_encoded)
             ics_path = temp_file.name
+            temp_file.close()  # Explicitly close the file
 
         return send_file(ics_path, as_attachment=True, download_name=f"{filename}.ics")
 
