@@ -33,13 +33,19 @@ bp = Blueprint('views', __name__)
 
 def process_uploaded_file(file):
     """
-    Processes the uploaded file and returns the extracted text and statistics.
+    Processes the uploaded file and returns the extracted text, persons data, and statistics.
 
     Parameters:
     - file: The uploaded file object
 
     Returns:
-    - tuple: persons_data, stats if the file is processed successfully, None, None otherwise.
+    - tuple: (persons_data, stats, extracted_text) if the file is processed successfully; (None, None, None) otherwise.
+
+    The function performs the following steps:
+    - Saves the uploaded file and retrieves its file path.
+    - Converts the file from PDF to text.
+    - Processes the extracted text to generate persons_data and statistics.
+    - Returns the persons_data, stats, and the raw extracted text.
     """
     file_path = save_uploaded_file(file)
     if not file_path:
@@ -50,10 +56,11 @@ def process_uploaded_file(file):
         extracted_text = convert_pdf_to_text(file_path)
     except FileNotFoundError as e:
         flash(f"An error occurred during file processing: {str(e)}", ERROR_FLASH_CATEGORY)
-        return None, None
+        return None, None, None
 
     # Process the extracted text and generate statistics
-    return process_text_and_generate_stats(extracted_text)
+    persons_data, stats = process_text_and_generate_stats(extracted_text)
+    return persons_data, stats, extracted_text
 
 
 @bp.route("/", methods=['GET', 'POST'])
@@ -63,13 +70,14 @@ def home():
 
     If the request method is GET, renders the home page.
     If the request method is POST, it:
-        - Takes an uploaded file from the user
-        - Processes the file to extract textual content
-        - Processes the extracted text to generate persons_data and statistics
-        - Renders the home page along with the processed data and statistics
+        - Takes an uploaded file from the user.
+        - Processes the file to extract textual content.
+        - Processes the extracted text to generate persons_data and statistics.
+        - Additionally, retrieves the raw extracted text for debugging purposes.
+        - Renders the home page along with the processed data, statistics, and debug information.
 
     Returns:
-    - HTML: Rendered template with any available data and statistics
+    - HTML: Rendered template with any available data, statistics, and debug information.
     """
 
     # Initialize variables
@@ -80,13 +88,13 @@ def home():
     if request.method == 'POST':
         file = request.files.get('file')
         if file:
-            persons_data, stats = process_uploaded_file(file)
+            persons_data, stats, debug_text = process_uploaded_file(file)
 
     return render_template(
         'index.html',
         persons_data=persons_data,
         stats=stats,
-        debug_text=extracted_text
+        debug_text=debug_text
     )
 
 
