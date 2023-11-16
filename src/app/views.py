@@ -83,7 +83,7 @@ def home():
     # Initialize variables
     persons_data = None
     stats = None
-    extracted_text = None
+    debug_text = None
 
     if request.method == 'POST':
         file = request.files.get('file')
