@@ -37,14 +37,14 @@ jobs:
         run: pyinstaller --onefile --name SP5ToICalExp --add-data "src/app/templates;templates/" --add-data "src/utils;utils/" --add-data "$(python -c 'import dateutil.zoneinfo; print(dateutil.__path__[0])')/zoneinfo;dateutil/zoneinfo" src/main.py --log-level DEBUG
         shell: pwsh
 
-      # List All Files After Build for Debugging Purposes
-      - name: List files after build
+      # List All Files in dist Directory for Debugging Purposes
+      - name: List files in dist directory
         run: Get-ChildItem -Path dist -Recurse
         shell: pwsh
 
-      # Compress the Resulting EXE Folder to a ZIP Archive
-      - name: Zip the EXE Folder
-        run: Compress-Archive -Path dist/SP5ToICalExp/* -DestinationPath "SP5ToICalExp-${{ env.VERSION }}-windows.zip"
+      # Compress the Single Executable File to a ZIP Archive
+      - name: Zip the EXE File
+        run: Compress-Archive -Path dist/SP5ToICalExp.exe -DestinationPath "SP5ToICalExp-${{ env.VERSION }}-windows.zip"
         shell: pwsh
 
       # List All Files Inside the ZIP Archive for Debugging Purposes
