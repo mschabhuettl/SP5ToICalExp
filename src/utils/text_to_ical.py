@@ -2,6 +2,7 @@ from ics import Calendar, Event
 from datetime import datetime, timedelta
 from dateutil import tz
 
+
 def convert_shifts_to_ical(shifts, timezone='Europe/Vienna'):
     """
     Converts a list of shift dictionaries into an iCal formatted calendar string.
@@ -29,7 +30,8 @@ def convert_shifts_to_ical(shifts, timezone='Europe/Vienna'):
 
             if shift.get("all_day", False):
                 e.name = shift["entry"]
-                e.begin = start_date.replace(tzinfo=tz_info)
+                start_date = datetime.strptime(shift["date"], "%a. %d.%m.%Y").date()
+                e.begin = start_date
                 e.make_all_day()
             else:
                 start_time_str, end_time_str = shift["shift_time"].split("-")
