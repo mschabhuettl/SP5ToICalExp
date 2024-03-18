@@ -64,9 +64,7 @@ jobs:
           $WScriptShell = New-Object -ComObject WScript.Shell
           $Shortcut = $WScriptShell.CreateShortcut("$env:GITHUB_WORKSPACE\CitrixStartSP5ToICalExp.lnk")
           $Shortcut.TargetPath = "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe"
-          # Stellen Sie sicher, dass der Pfad zu SP5ToICalExp.exe absolut ist oder relativ korrekt von der LNK-Datei aus aufgelöst wird
-          $Shortcut.Arguments = "-NoExit -ExecutionPolicy Bypass -File `"$env:GITHUB_WORKSPACE\dist\SP5ToICalExp\SP5ToICalExp.exe`""
-          $Shortcut.WorkingDirectory = "$env:GITHUB_WORKSPACE\dist\SP5ToICalExp"
+          $Shortcut.Arguments = "-ExecutionPolicy Bypass -NoExit -Command `"Start-Process '$env:GITHUB_WORKSPACE\SP5ToICalExp.exe' -WorkingDirectory '$env:GITHUB_WORKSPACE'`""
           $Shortcut.Save()
         shell: pwsh
         if: runner.os == 'Windows'
