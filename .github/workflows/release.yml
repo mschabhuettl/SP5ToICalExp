@@ -58,6 +58,20 @@ jobs:
         run: Expand-Archive -Path "SP5ToICalExp-${{ env.VERSION }}-windows.zip" -DestinationPath temp; Get-ChildItem -Path temp -Recurse
         shell: pwsh
 
+      # Create a PowerShell Script to Start the EXE
+      - name: Create PowerShell Start Script
+        run: |
+          $scriptContent = @"
+          Start-Process -FilePath `"./SP5ToICalExp/SP5ToICalExp.exe`"
+          "@
+          New-Item -Path . -Name "Start.ps1" -ItemType "file" -Value $scriptContent -Force
+        shell: pwsh
+
+      # Add the PowerShell Script to the ZIP Archive
+      - name: Add Start Script to ZIP
+        run: Compress-Archive -Path Start.ps1, "dist/SP5ToICalExp/*" -DestinationPath "SP5ToICalExp-${{ env.VERSION }}-windows.zip" -Force
+        shell: pwsh
+
       # Create a Release on GitHub with the Generated Version Number
       - name: Create Release
         id: create_release
