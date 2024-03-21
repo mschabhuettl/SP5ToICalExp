@@ -33,14 +33,16 @@ jobs:
         shell: pwsh
 
       # Build the EXE with PyInstaller with Optimized Settings
-      - name: Build EXE with Pyinstaller
+      - name: Build EXE with Pyinstaller (Optimized)
         run: |
-          pyinstaller `
-          --name SP5ToICalExp `
-          --add-data "src/app/templates;templates/" `
-          --add-data "src/utils;utils/" `
-          --add-data "$(python -c 'import dateutil.zoneinfo; print(dateutil.__path__[0])')/zoneinfo;dateutil/zoneinfo" `
-          src/main.py
+          pyinstaller \
+            --name SP5ToICalExp \
+            --noconsole \
+            --add-data "src/app/templates;templates/" \
+            --add-data "src/utils;utils/" \
+            --add-data "$(python -c 'import dateutil.zoneinfo; print(dateutil.__path__[0])')/zoneinfo;dateutil/zoneinfo" \
+            --exclude-module _bootlocale \
+            src/main.py
         shell: pwsh
 
       # List All Files After Build for Debugging Purposes
