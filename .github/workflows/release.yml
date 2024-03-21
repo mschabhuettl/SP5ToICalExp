@@ -58,22 +58,15 @@ jobs:
         run: Expand-Archive -Path "SP5ToICalExp-${{ env.VERSION }}-windows.zip" -DestinationPath temp; Get-ChildItem -Path temp -Recurse
         shell: pwsh
 
-      # Create PowerShell LNK File to Launch the Application in Environments like Citrix
-      - name: Create LNK File for Citrix Environment
+      # Create a Batch Script to Start the EXE
+      - name: Create Batch Start Script
         run: |
-          $WScriptShell = New-Object -ComObject WScript.Shell
-          $Shortcut = $WScriptShell.CreateShortcut("$env:GITHUB_WORKSPACE\CitrixStartSP5ToICalExp.lnk")
-          $Shortcut.TargetPath = "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe"
-          $Shortcut.Arguments = "-ExecutionPolicy Bypass -File `"$env:GITHUB_WORKSPACE\dist\SP5ToICalExp\SP5ToICalExp.exe`""
-          $Shortcut.WorkingDirectory = "$env:GITHUB_WORKSPACE\dist\SP5ToICalExp"
-          $Shortcut.Save()
-        shell: pwsh
-        if: runner.os == 'Windows'
+          echo Start SP5ToICalExp.exe > Start.bat
+        shell: bash
 
-      # Zip the EXE Folder and the PowerShell LNK File
-      - name: Zip the EXE Folder and LNK File
-        run: |
-          Compress-Archive -Path dist/SP5ToICalExp/*, "CitrixStartSP5ToICalExp.lnk" -DestinationPath "SP5ToICalExp-${{ env.VERSION }}-windows.zip" -Force
+      # Add the Batch Script to the ZIP Archive
+      - name: Add Start Script to ZIP
+        run: Compress-Archive -Path Start.bat, "dist/SP5ToICalExp/*" -DestinationPath "SP5ToICalExp-${{ env.VERSION }}-windows.zip" -Force
         shell: pwsh
 
       # Create a Release on GitHub with the Generated Version Number
